@@ -7,7 +7,8 @@ import { useState } from "react";
 import Dropzone from 'react-dropzone';
 
 const ffmpeg = createFFmpeg({
-  corePath: "https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js"
+  corePath: "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js",
+  wasmPath: "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.wasm",
 });
 
 const Home: NextPage = () =>
