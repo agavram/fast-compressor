@@ -1,13 +1,13 @@
-import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
+import { createFFmpeg } from "@ffmpeg/ffmpeg";
 import { useQuery } from "@tanstack/react-query";
-import { saveAs } from "file-saver";
 import type { NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
 import Dropzone from 'react-dropzone';
 import useNotification from "../components/snackbar";
+import { compressAndDownloadImage, compressAndDownloadVideo } from "../services/file-processor";
 
-const ffmpeg = createFFmpeg({
+export const ffmpeg = createFFmpeg({
   corePath: "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js",
   wasmPath: "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.wasm",
 });
@@ -28,40 +28,32 @@ const Home: NextPage = () =>
 
   const handleFiles = async (files: File[]) =>
   {
-    const file = files[0]!;
-    if (file.name.toLowerCase().endsWith(".mp4"))
+    if (files.length)
     {
-      // remove file extension from file.name
-      const fileName = file.name.replace(/\.[^/.]+$/, "");
-      const compressedName = `${fileName}-compressed.mp4`;
-      ffmpeg.FS('writeFile', file.name, await fetchFile(file));
+      const file = files[0] as File;
 
-      ffmpeg.setProgress((p) => setProgress(Math.round(p.ratio * 100)));
+      const end = file.name.indexOf(".");
+      const name = file.name.substring(0, end) + "-compressed" + file.name.substring(end);
 
       try
       {
-        await ffmpeg.run(
-          '-i', file.name,
-          '-c:v', 'libx264',
-          '-crf', '32',
-          '-preset', 'faster',
-          compressedName
-        );
+        if (file.name.toLowerCase().endsWith(".mp4"))
+        {
+          await compressAndDownloadVideo(name, file, setProgress);
+        }
+        else
+        {
+          await compressAndDownloadImage(name, file, setProgress);
+        }
       }
       catch
       {
-        notify("An error occurred while compressing the video.");
+        notify("Unable to process file");
       }
-
-
-      setProgress(null);
-
-      const data = ffmpeg.FS('readFile', compressedName);
-      saveAs(new Blob([data.buffer], { type: `video/mp4` }), compressedName);
-    }
-    else 
-    {
-      notify("Invalid file type");
+      finally
+      {
+        setProgress(null);
+      }
     }
   };
 
@@ -110,17 +102,23 @@ const Home: NextPage = () =>
               onDragLeave={() => setHover(false)}
               onDropAccepted={() => setHover(false)}
               onDropRejected={() => setHover(false)}
+              accept={{
+                'image/jpeg': [],
+                'image/jpg': [],
+                'image/png': [],
+                'video/mp4': [],
+              }}
               onDrop={handleFiles}>
               {({ getRootProps, getInputProps }) => (
                 <label {...getRootProps()} htmlFor="dropzone-file"
                   className={`${hover ? 'bg-slate-700' : 'bg-slate-800'}
-                m-12 flex flex-col justify-center items-center w-1/2 h-64  rounded-lg border-2 border-slate-500 border-dashed cursor-pointer hover:bg-slate-700`}>
+                m-12 flex flex-col justify-center items-center w-full max-w-lg h-64  rounded-lg border-2 border-slate-500 border-dashed cursor-pointer hover:bg-slate-700`}>
                   <div className="flex flex-col justify-center items-center p-6">
                     <svg aria-hidden="true" className="mb-3 w-10 h-10 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                     <p className="mb-2 text-sm text-gray-500 dark:text-gray-200 text-center"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">.MP4 Supported</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center">Images & .MP4 Supported</p>
                   </div>
-                  <input {...getInputProps()} id="dropzone-file" type="file" className="hidden" accept=".mp4" />
+                  <input {...getInputProps()} />
                 </label>
               )}
             </Dropzone>
@@ -130,28 +128,5 @@ const Home: NextPage = () =>
     </>
   );
 };
-
-// const NotifyError = () =>
-// {
-//   const timer = useRef(null);
-
-//   useEffect(() => {
-
-//   })
-
-//   return (
-//     <div id="toast-danger" className="flex items-center p-4 mb-4 w-full max-w-xs text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800" role="alert">
-//       <div className="inline-flex flex-shrink-0 justify-center items-center w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
-//         <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
-//         <span className="sr-only">Error icon</span>
-//       </div>
-//       <div className="ml-3 text-sm font-normal">Item has been deleted.</div>
-//       <button type="button" className="ml-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" data-dismiss-target="#toast-danger" aria-label="Close">
-//         <span className="sr-only">Close</span>
-//         <svg aria-hidden="true" className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
-//       </button>
-//     </div>
-//   );
-// };
 
 export default Home;
