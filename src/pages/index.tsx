@@ -177,6 +177,8 @@ const Home: NextPage = () =>
               onDragLeave={() => setHover(false)}
               onDropAccepted={() => setHover(false)}
               onDropRejected={() => setHover(false)}
+              onDragEnter={() => setHover(true)}
+              onFileDialogCancel={() => setHover(false)}
               accept={{
                 'image/jpeg': [],
                 'image/jpg': [],
@@ -186,6 +188,10 @@ const Home: NextPage = () =>
               onDrop={handleFiles}>
               {({ getRootProps, getInputProps }) => (
                 <label
+                  onTouchStart={() => setHover(true)}
+                  onTouchCancel={() => setHover(false)}
+                  onTouchEnd={() => setHover(false)}
+                  onMouseEnter={() => setHover(true)}
                   onMouseOver={() => setHover(true)}
                   onMouseLeave={() => setHover(false)}
                   {...getRootProps()}
