@@ -90,7 +90,6 @@ const Home: NextPage = () =>
   useEffect(() =>
   {
     animRef.current && cancelAnimationFrame(animRef.current);
-    console.log("beans");
 
     if (hover)
     {
@@ -99,6 +98,7 @@ const Home: NextPage = () =>
         if (warpRef.current && warpRef.current.SPEED < 5)
         {
           warpRef.current.SPEED += 0.1;
+          warpRef.current.TARGET_SPEED = 5;
           animRef.current = requestAnimationFrame(step);
         }
       };
@@ -111,6 +111,7 @@ const Home: NextPage = () =>
         if (warpRef.current && warpRef.current.SPEED > 1)
         {
           warpRef.current.SPEED -= 0.1;
+          warpRef.current.TARGET_SPEED = 1;
           animRef.current = requestAnimationFrame(step);
         }
       };
