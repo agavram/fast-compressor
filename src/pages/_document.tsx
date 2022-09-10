@@ -5,7 +5,7 @@ export default function Document()
     return (
         <Html>
             <Head />
-            <body>
+            <body style={{ backgroundColor: "#172032" }}>
                 <Main />
                 <NextScript />
                 <div id="snackbar-notification" />

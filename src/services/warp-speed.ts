@@ -78,7 +78,14 @@ export class WarpSpeed
         this.stars = [];
         for (let i = 0; i < this.DENSITY * 1000; i++)
         {
-            this.stars.push(new Star((Math.random() - 0.5) * 1000, (Math.random() - 0.5) * 1000, 1000 * Math.random()));
+            let x = 10;
+            let y = 10;
+            while (Math.sqrt(x * x + y * y) < 25)
+            {
+                x = (Math.random() - 0.5) * 1000;
+                y = (Math.random() - 0.5) * 1000;
+            }
+            this.stars.push(new Star(x, y, 1000 * Math.random()));
         }
 
         this.lastMoveTS = timeStamp();
@@ -168,8 +175,15 @@ export class WarpSpeed
             while (s.z < 1)
             {
                 s.z += 1000;
-                s.x = (Math.random() - 0.5) * s.z;
-                s.y = (Math.random() - 0.5) * s.z;
+                let newX = 10;
+                let newY = 10;
+                while (Math.sqrt(newX * newX + newY * newY) < 25)
+                {
+                    newX = (Math.random() - 0.5) * s.z;
+                    newY = (Math.random() - 0.5) * s.z;
+                }
+                s.x = newX;
+                s.y = newY;
             }
         }
     };
