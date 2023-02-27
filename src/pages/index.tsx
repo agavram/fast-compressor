@@ -13,6 +13,8 @@ export const ffmpeg = createFFmpeg({
   wasmPath: "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.wasm",
 });
 
+const baseCSS = "bg-slate-800/50 m-12 flex flex-col justify-center items-center w-full max-w-lg h-64 rounded-lg border-2 border-slate-500 border-dashed cursor-pointer";
+
 const Home: NextPage = () =>
 {
   const [hover, setHover] = useState(false);
@@ -67,7 +69,7 @@ const Home: NextPage = () =>
 
       try
       {
-        if (file.name.toLowerCase().endsWith(".mp4"))
+        if (file.name.toLowerCase().endsWith(".mp4") || file.name.toLocaleLowerCase().endsWith(".mov"))
         {
           await compressAndDownloadVideo(name, file, setProgress);
         }
@@ -184,6 +186,7 @@ const Home: NextPage = () =>
                 'image/jpg': [],
                 'image/png': [],
                 'video/mp4': [],
+                'video/quicktime': [],
               }}
               onDrop={handleFiles}>
               {({ getRootProps, getInputProps }) => (
@@ -195,8 +198,8 @@ const Home: NextPage = () =>
                   onMouseOver={() => setHover(true)}
                   onMouseLeave={() => setHover(false)}
                   {...getRootProps()}
-                  htmlFor="dropzone-file"
-                  className="bg-slate-800/50 m-12 flex flex-col justify-center items-center w-full max-w-lg h-64  rounded-lg border-2 border-slate-500 border-dashed cursor-pointer hover:bg-slate-800/75">
+                  className={hover ? baseCSS : baseCSS + " bg-slate-800/25"}
+                  >
                   <div className="flex flex-col justify-center items-center p-6">
                     <svg aria-hidden="true" className="mb-3 w-10 h-10 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                     <p className="mb-2 text-sm text-gray-500 dark:text-gray-200 text-center"><span className="font-semibold">Click to upload</span> or drag and drop</p>

@@ -1,20 +1,19 @@
 import { fetchFile } from "@ffmpeg/ffmpeg";
-import imageCompression from "browser-image-compression";
 import saveAs from "file-saver";
+import Compressor from "compressorjs";
 import { ffmpeg } from "../pages";
 
 export const compressAndDownloadImage = async (name: string, file: File, setProgress: (n: number | null) => void) =>
 {
-    const compressedFile = await imageCompression(file, {
-        alwaysKeepResolution: true,
-        maxSizeMB: 8,
-        onProgress(progress)
-        {
-            setProgress(progress);
-        }
-    });
+    const compressedFile = await new Promise((resolve, reject) => new Compressor(file, {
+        success: (res) => resolve(res),
+        error: (err) => reject(err),
+    }));
 
-    await saveAs(compressedFile, name);
+    if (compressedFile instanceof File || compressedFile instanceof Blob)
+    {
+        await saveAs(compressedFile, name);
+    }
 };
 
 export const compressAndDownloadVideo = async (name: string, file: File, setProgress: (n: number | null) => void) =>
